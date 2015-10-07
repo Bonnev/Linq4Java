@@ -9,14 +9,7 @@ import java.util.LinkedList;
 
 public class Linq {
 	public static <A, T extends Iterable<A>> Iterable<A> Where(T iterable, IPredicate<A> predicate){
-		ArrayList<A> result = new ArrayList<A>();
-		
-		for(A a : iterable){
-			if(predicate.callPredicate(a)){
-				result.add(a);
-			};
-		}
-		return result;
+		return Where(iterable, (IAction<A, Boolean>)(a)->predicate.callPredicate(a));
 	}
 	
 	public static <A, T extends Iterable<A>> Iterable<A> Where(T iterable, IAction<A, Boolean> action){
@@ -94,12 +87,7 @@ public class Linq {
 	}
 	
 	public static <A, T extends Iterable<A>> int Count(T iterable, IAction<A, Boolean> action){
-		int count = 0;
-		
-		for(A a : Where(iterable, action)){
-			count++;
-		}
-		return count;
+		return Count(Where(iterable, action));
 	}
 	
 	public static <A, T extends Iterable<A>> Iterable<A> Distinct(T iterable){
@@ -128,14 +116,7 @@ public class Linq {
 	}
 	
 	public static <A, T extends Iterable<A>> Iterable<A> OrderByDescending(T iterable, Comparator<A> comparator){
-		ArrayList<A> result = new ArrayList<A>(Count(iterable));
-		
-		for(A a : iterable){
-			result.add(a);
-		}
-		Collections.sort((List<A>) result, (Comparator<A>)(t1, t2) -> comparator.compare(t2, t1));
-		
-		return result;
+		return OrderBy(iterable, (Comparator<A>)(t1, t2)->comparator.compare(t2, t1));
 	}
 	
 	public static <A, T extends Iterable<A>> Iterable<A> Reverse(T iterable){		
