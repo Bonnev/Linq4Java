@@ -8,11 +8,23 @@ import java.util.HashSet;
 import java.util.LinkedList;
 
 public class Linq {
-	public static <A, T extends Iterable<A>> Iterable<A> Where(T iterable, IPredicate<A> predicate){
-		return Where(iterable, (IAction<A, Boolean>)(a)->predicate.callPredicate(a));
+	public interface IFunc <TParam, TResult> {
+		public TResult callAction(TParam parameter);
 	}
 	
-	public static <A, T extends Iterable<A>> Iterable<A> Where(T iterable, IAction<A, Boolean> action){
+	public interface IFunc2Params<TParam1, TParam2, TResult> {
+		public TResult callAction(TParam1 parameter1, TParam2 parameter2);
+	}
+	
+	public interface IPredicate <TParam>{
+		public boolean callPredicate(TParam parameter);
+	}
+	
+	public static <A, T extends Iterable<A>> Iterable<A> Where(T iterable, IPredicate<A> predicate){
+		return Where(iterable, (IFunc<A, Boolean>)(a)->predicate.callPredicate(a));
+	}
+	
+	public static <A, T extends Iterable<A>> Iterable<A> Where(T iterable, IFunc<A, Boolean> action){
 		ArrayList<A> result = new ArrayList<A>();
 		
 		for(A a : iterable){
@@ -23,7 +35,7 @@ public class Linq {
 		return result;
 	}
 	
-	public static <A, B, T extends Iterable<A>> Iterable<B> Select(T iterable, IAction<A,B> action){
+	public static <A, B, T extends Iterable<A>> Iterable<B> Select(T iterable, IFunc<A,B> action){
 		ArrayList<B> result = new ArrayList<B>();
 		
 		for(A a : iterable){
@@ -32,7 +44,7 @@ public class Linq {
 		return result;
 	}
 	
-	public static <A, B, T extends Iterable<A>> Iterable<B> Select(T iterable, IAction2Params<A, Integer, B> action){
+	public static <A, B, T extends Iterable<A>> Iterable<B> Select(T iterable, IFunc2Params<A, Integer, B> action){
 		ArrayList<B> result = new ArrayList<B>();
 		int i = 0;
 		
@@ -44,7 +56,7 @@ public class Linq {
 	}
 	
 	public static <A, B, C extends Iterable<B>, T extends Iterable<A>> Iterable<B> 
-		SelectMany(T iterable, IAction<A, C> action){
+		SelectMany(T iterable, IFunc<A, C> action){
 		ArrayList<B> result = new ArrayList<B>();
 		
 		for(A a : iterable){
@@ -80,13 +92,14 @@ public class Linq {
 	public static <A, T extends Iterable<A>> int Count(T iterable){
 		int count = 0;
 		
-		for(A a : iterable){
+		for (Iterator<A> iterator = iterable.iterator(); iterator.hasNext();) {
 			count++;
 		}
+		
 		return count;
 	}
 	
-	public static <A, T extends Iterable<A>> int Count(T iterable, IAction<A, Boolean> action){
+	public static <A, T extends Iterable<A>> int Count(T iterable, IFunc<A, Boolean> action){
 		return Count(Where(iterable, action));
 	}
 	
@@ -161,7 +174,7 @@ public class Linq {
 		    };
 	}
 	
-	public static <A, T extends Iterable<A>> void ForEach(T iterable, IAction<A, Void> action){
+	public static <A, T extends Iterable<A>> void ForEach(T iterable, IFunc<A, Void> action){
 		for(A a : iterable){
 			action.callAction(a);
 		}

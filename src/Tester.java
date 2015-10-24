@@ -37,17 +37,17 @@ public class Tester {
 		b.add(new Point(1, 8));
 		b.add(new Point(1, 9));
 		b.add(new Point(1, 10));
-		for(int y : Linq.Select(b, (IAction<Point, Integer>)(t) -> t.y)){
+		for(int y : Linq.Select(b, (Linq.IFunc<Point, Integer>)(t) -> t.y)){
 			System.out.print(y + " ");
 		}
 		System.out.println();
 		
-		for(Point point : Linq.Where(b, (IPredicate<Point>)(t) -> t.y>5)){
+		for(Point point : Linq.Where(b, (Linq.IPredicate<Point>)(t) -> t.y>5)){
 			System.out.print(point.y + " ");
 		}
 		System.out.println();
 		
-		for(String string : Linq.Select(b, (IAction2Params<Point, Integer, String>)(t, i)->String.format("%s: %s", i, t.y))){
+		for(String string : Linq.Select(b, (Linq.IFunc2Params<Point, Integer, String>)(t, i)->String.format("%s: %s", i, t.y))){
 			System.out.print(string + " ");
 		}
 		System.out.println();
@@ -60,16 +60,16 @@ public class Tester {
 		test2.add("06");test2.add("05");test2.add("04");
 		test.add(new Test(test1));test.add(new Test(test2));
 		
-		for(String string : Linq.SelectMany(test, (IAction<Test, ArrayList<String>>)(t)->t.test)){
+		for(String string : Linq.SelectMany(test, (Linq.IFunc<Test, ArrayList<String>>)(t)->t.test)){
 			System.out.print(string + " ");
 		}
 		
-		ListIterator li = test2.listIterator();
+		ListIterator<String> li = test2.listIterator();
 		System.out.println(test2);
 		System.out.println(Linq.Distinct(test2));
 		System.out.println(Linq.OrderByDescending(test2, (Comparator<String>)((t1, t2)->t2.compareTo(t1))));
-		Linq.ForEach(Linq.Skip(test2, 2), (IAction<String, Void>)(t)->{
-			System.out.println(t);		
+		Linq.ForEach(Linq.Skip(test2, 2), (Linq.IFunc<String, Void>)(t)->{
+			System.out.println(t);
 			return (null);
 		});
 	}
