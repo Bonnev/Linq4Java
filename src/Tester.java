@@ -17,20 +17,6 @@ public class Tester {
 		ArrayList<String> animals = new ArrayList<>();
 		animals.add("cat3"); animals.add("dog1"); animals.add("cat2");
 		animals.add("dog2"); animals.add("cat1"); animals.add("dog3");
-		ArrayList<Test> testt = new ArrayList<>();
-		testt.add(new Test(1,1));
-		testt.add(new Test(1,2));
-		testt.add(new Test(1,3));
-		testt.add(new Test(2,1));
-		testt.add(new Test(2,2));
-		
-		HashMap<Integer, ArrayList<Test>> resultt = (new Linq<Test>(testt)).GroupBy((t)->(Integer)t.x);
-		for(Map.Entry<Integer, ArrayList<Test>> entry : resultt	.entrySet()){
-			System.out.println(entry.getKey());
-			for(Test test : entry.getValue()){
-				System.out.println(test.y);
-			}
-		}
 		
 		// Static way -> starts from inner methods! Needs some casting here and there - the instance way it better!
 		LinqStatic.ForEach(
@@ -61,5 +47,21 @@ public class Tester {
 		 * 3 2 1
 		 * 3 2 1 
 		 */
+		
+		// GroupBy() example
+		ArrayList<Test> testt = new ArrayList<>();
+		testt.add(new Test(1,1));
+		testt.add(new Test(1,2));
+		testt.add(new Test(1,3));
+		testt.add(new Test(2,1));
+		testt.add(new Test(2,2));
+		HashMap<Integer, ArrayList<Test>> resultt = (new Linq<Test>(testt)).GroupBy((t)->t.x);
+		for(Map.Entry<Integer, ArrayList<Test>> entry : resultt	.entrySet()){
+			System.out.println(entry.getKey());
+			for(Test test : entry.getValue()){
+				System.out.println(test.y);
+			}
+		}
+		
 	}
 }
