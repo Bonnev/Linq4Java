@@ -16,12 +16,8 @@ public class LinqStatic {
 		public TResult callAction(TParam1 parameter1, TParam2 parameter2);
 	}
 	
-	public interface IPredicate <TParam>{
-		public boolean callPredicate(TParam parameter);
-	}
-	
-	public static <A, T extends Iterable<A>> Iterable<A> Where(T iterable, IPredicate<A> predicate){
-		return Where(iterable, (IFunc<A, Boolean>)(a)->predicate.callPredicate(a));
+	public interface IAction<TParam1> {
+		public void callAction(TParam1 parameter1);
 	}
 	
 	public static <A, T extends Iterable<A>> Iterable<A> Where(T iterable, IFunc<A, Boolean> action){
@@ -117,19 +113,28 @@ public class LinqStatic {
 		return result;
 	}
 	
-	public static <A, T extends Iterable<A>> Iterable<A> OrderBy(T iterable, Comparator<A> comparator){
-		ArrayList<A> result = new ArrayList<A>(Count(iterable));
+	public static <A, B extends Comparable<B>, T extends Iterable<A>> Iterable<B> OrderBy(T iterable, IFunc<A, B> action){
+		return OrderBy(iterable, action, (t1, t2) -> t2.compareTo(t1));
+	}
+	
+	public static <A, B, T extends Iterable<A>> Iterable<B> OrderBy(T iterable, IFunc<A, B> action, Comparator<B> comparator){
+		List<B> result = new ArrayList<B>();
 		
 		for(A a : iterable){
-			result.add(a);
+			B toAddItem = action.callAction(a); 
+			result.add(toAddItem);
 		}
-		Collections.sort((List<A>) result, comparator);
+		Collections.sort(result, comparator);
 		
 		return result;
 	}
 	
-	public static <A, T extends Iterable<A>> Iterable<A> OrderByDescending(T iterable, Comparator<A> comparator){
-		return OrderBy(iterable, (Comparator<A>)(t1, t2)->comparator.compare(t2, t1));
+	public static <A, B extends Comparable<B>, T extends Iterable<A>> Iterable<B> OrderByDescending(T iterable, IFunc<A, B> action){
+		return OrderBy(iterable, action, (t1, t2) -> t2.compareTo(t1));
+	}
+	
+	public static <A, B, T extends Iterable<A>> Iterable<B> OrderByDescending(T iterable, IFunc<A, B> action, Comparator<B> comparator){
+		return OrderBy(iterable, action, (t1, t2)->comparator.compare(t2, t1));
 	}
 	
 	public static <A, T extends Iterable<A>> Iterable<A> Reverse(T iterable){		
@@ -174,7 +179,7 @@ public class LinqStatic {
 		    };
 	}
 	
-	public static <A, T extends Iterable<A>> void ForEach(T iterable, IFunc<A, Void> action){
+	public static <A, T extends Iterable<A>> void ForEach(T iterable, IAction<A> action){
 		for(A a : iterable){
 			action.callAction(a);
 		}

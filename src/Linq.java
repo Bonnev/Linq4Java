@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.LinkedList;
 
-public class Linq {
+public class Linq<TInitial> {
 	public interface IFunc <TParam, TResult> {
 		public TResult callAction(TParam parameter);
 	}
@@ -16,59 +16,72 @@ public class Linq {
 		public TResult callAction(TParam1 parameter1, TParam2 parameter2);
 	}
 	
-	public interface IPredicate <TParam>{
-		public boolean callPredicate(TParam parameter);
+	public interface IAction<TParam1> {
+		public void callAction(TParam1 parameter1);
 	}
 	
-	public static <A, T extends Iterable<A>> Iterable<A> Where(T iterable, IPredicate<A> predicate){
-		return Where(iterable, (IFunc<A, Boolean>)(a)->predicate.callPredicate(a));
+	private boolean extendsAbstractList = false;
+	private Iterable<TInitial> _iterable;
+	
+	public <TIterable extends Iterable<TInitial>> Linq(TIterable iterable){
+		_iterable = iterable;
 	}
 	
-	public static <A, T extends Iterable<A>> Iterable<A> Where(T iterable, IFunc<A, Boolean> action){
-		ArrayList<A> result = new ArrayList<A>();
+	public <TIterable extends AbstractList<TInitial>> Linq(TIterable iterable){
+		_iterable = iterable;
+		extendsAbstractList = true;
+	}
+	
+	public Iterable<TInitial> GetIterable(){
+		return _iterable;
+	}
+	
+	public Linq<TInitial> Where(IFunc<TInitial, Boolean> action){
+		ArrayList<TInitial> result = new ArrayList<TInitial>();
 		
-		for(A a : iterable){
+		for(TInitial a : _iterable){
 			if(action.callAction(a)){
 				result.add(a);
 			};
 		}
-		return result;
+		
+		return new Linq<TInitial>(result);
 	}
 	
-	public static <A, B, T extends Iterable<A>> Iterable<B> Select(T iterable, IFunc<A,B> action){
+	public <B> Linq<B> Select(IFunc<TInitial,B> action){
 		ArrayList<B> result = new ArrayList<B>();
 		
-		for(A a : iterable){
+		for(TInitial a : _iterable){
 			result.add(action.callAction(a));
 		}
-		return result;
+		return new Linq<B>(result);
 	}
 	
-	public static <A, B, T extends Iterable<A>> Iterable<B> Select(T iterable, IFunc2Params<A, Integer, B> action){
+	public <B> Linq<B> Select(IFunc2Params<TInitial, Integer, B> action){
 		ArrayList<B> result = new ArrayList<B>();
 		int i = 0;
 		
-		for(A a : iterable){
+		for(TInitial a : _iterable){
 			result.add(action.callAction(a, i));
 			i++;
 		}
-		return result;
+		return new Linq<B>(result);
 	}
 	
-	public static <A, B, C extends Iterable<B>, T extends Iterable<A>> Iterable<B> 
-		SelectMany(T iterable, IFunc<A, C> action){
+	public <B, C extends Iterable<B>> Linq<B> SelectMany(IFunc<TInitial, C> action){
 		ArrayList<B> result = new ArrayList<B>();
 		
-		for(A a : iterable){
+		for(TInitial a : _iterable){
 			for(B b : action.callAction(a)){
 				result.add(b);
 			}
 		}
-		return result;
+		
+		return new Linq<B>(result);
 	}
 	
-	public static <A, T extends Iterable<A>> A First(T iterable){
-		Iterator<A> iterator = iterable.iterator();
+	public TInitial First(){
+		Iterator<TInitial> iterator = _iterable.iterator();
 		
 		if(iterator.hasNext()){
 			return iterator.next();
@@ -76,118 +89,146 @@ public class Linq {
 		return null;
 	}
 	
-	public static <A, T extends AbstractList<A>> A Last(T abstractList){
-		return abstractList.get(abstractList.size()-1);
+	private TInitial LastList(){
+		return ((AbstractList<TInitial>)_iterable).get(
+				((AbstractList<TInitial>)_iterable).size()-1);
 	}
 	
-	public static <A, T extends Iterable<A>> A Last(T iterable){
-		A result = null;
+	public TInitial Last(){
+		if(extendsAbstractList){
+			return LastList();
+		}
 		
-		for(A a : iterable){
+		TInitial result = null;
+		
+		for(TInitial a : _iterable){
 			result = a;
 		}
 		return result;
 	}
 	
-	public static <A, T extends Iterable<A>> int Count(T iterable){
+	private int CountList(){
+		return ((AbstractList<TInitial>)_iterable).size();
+	}
+	
+	public int Count(){
+		if(extendsAbstractList){
+			return CountList();
+		}
+		
 		int count = 0;
 		
-		for (Iterator<A> iterator = iterable.iterator(); iterator.hasNext();) {
+		for (Iterator<TInitial> iterator = _iterable.iterator(); iterator.hasNext(); iterator.next()) {
 			count++;
 		}
 		
 		return count;
 	}
 	
-	public static <A, T extends Iterable<A>> int Count(T iterable, IFunc<A, Boolean> action){
-		return Count(Where(iterable, action));
+	public int Count(IFunc<TInitial, Boolean> action){
+		return Where(action).CountList();
 	}
 	
-	public static <A, T extends Iterable<A>> Iterable<A> Distinct(T iterable){
-		ArrayList<A> result = new ArrayList<A>();
-		HashSet<A> hashSet = new HashSet<A>();
+	public Linq<TInitial> Distinct(){
+		ArrayList<TInitial> result = new ArrayList<TInitial>();
+		HashSet<TInitial> hashSet = new HashSet<TInitial>();
 		
-		for(A a : iterable){
+		for(TInitial a : _iterable){
 			if(!hashSet.contains(a)){
 				hashSet.add(a);
 				result.add(a);
 			}
 		}
 		 
-		return result;
+		return new Linq<TInitial>(result);
 	}
 	
-	public static <A, T extends Iterable<A>> Iterable<A> OrderBy(T iterable, Comparator<A> comparator){
-		ArrayList<A> result = new ArrayList<A>(Count(iterable));
+	public <B extends Comparable<B>> Linq<B> OrderBy(IFunc<TInitial, B> action){
+		return OrderBy(action, (a,b) -> a.compareTo(b));
+	}
+	
+	public <B> Linq<B> OrderBy(IFunc<TInitial, B> action, Comparator<B> comparator){
+		List<B> result = new ArrayList<B>();
 		
-		for(A a : iterable){
-			result.add(a);
+		for(TInitial a : _iterable){
+			B toAddItem = action.callAction(a); 
+			result.add(toAddItem);
 		}
-		Collections.sort((List<A>) result, comparator);
+		Collections.sort(result, comparator);
 		
-		return result;
+		return new Linq<B>(result);
 	}
 	
-	public static <A, T extends Iterable<A>> Iterable<A> OrderByDescending(T iterable, Comparator<A> comparator){
-		return OrderBy(iterable, (Comparator<A>)(t1, t2)->comparator.compare(t2, t1));
+	public <B extends Comparable<B>> Linq<B> OrderByDescending(IFunc<TInitial, B> action){
+		return OrderBy(action, (t1, t2) -> t2.compareTo(t1));
 	}
 	
-	public static <A, T extends Iterable<A>> Iterable<A> Reverse(T iterable){		
-		LinkedList<A> list = new LinkedList<A>();
+	public <B> Linq<B> OrderByDescending(IFunc<TInitial, B> action, Comparator<B> comparator){
+		return OrderBy(action, (t1, t2) -> comparator.compare(t2, t1));
+	}
+	
+	public Linq<TInitial> Reverse(){
+		if(extendsAbstractList){
+			return ReverseList(); 
+		}
 		
-		for(A a : iterable){
+		LinkedList<TInitial> list = new LinkedList<TInitial>();
+		
+		for(TInitial a : _iterable){
 			list.addFirst(a);
 		}
 		
-		return list;
+		return new Linq<TInitial>(list);
 	}
 	
-	public static <A, T extends AbstractList<A>> Iterable<A> Reverse(T abstractList){
-		    return new Iterable<A>() {
+	private Linq<TInitial> ReverseList(){
+		AbstractList<TInitial> abstractList = (AbstractList<TInitial>)_iterable;
+		return new Linq<TInitial>(new Iterable<TInitial>() {
 
-		        @Override
-		        public Iterator<A> iterator() {
-		            return new Iterator<A>() {
+	        @Override
+	        public Iterator<TInitial> iterator() {
+	            return new Iterator<TInitial>() {
 
-		            	int i = abstractList.size();
-		            	
-		                @Override
-		                public boolean hasNext() {
-		                    return i > 0;
-		                }
+	            	int i = abstractList.size();
+	            	
+	                @Override
+	                public boolean hasNext() {
+	                    return i > 0;
+	                }
 
-		                @Override
-		                public A next() {
-		                    return abstractList.get(--i);
-		                }
+	                @Override
+	                public TInitial next() {
+	                	i--;
+	                    return abstractList.get(i);
+	                }
 
-		                @Override
-		                public void remove() {
-		                	if(i < 0 || i >= abstractList.size()){
-		                		return;
-		                	}
-		                	abstractList.remove(i);
-		                }
+	                @Override
+	                public void remove() {
+	                	if(i < 0 || i >= abstractList.size()){
+	                		return;
+	                	}
+	                	abstractList.remove(i);
+	                }
 
-		            };
-		        }
-		    };
+	            };
+		    }
+		});
 	}
 	
-	public static <A, T extends Iterable<A>> void ForEach(T iterable, IFunc<A, Void> action){
-		for(A a : iterable){
+	public void ForEach(IAction<TInitial> action){
+		for(TInitial a : _iterable){
 			action.callAction(a);
 		}
 	}
 
-	public static <A, T extends Iterable<A>> Iterable<A> Take(T iterable, int toTakeCount){
-		return new Iterable<A>() {
-
+	public Linq<TInitial> Take(int toTakeCount){
+		return new Linq<TInitial>(new Iterable<TInitial>() {
+			
 	        @Override
-	        public Iterator<A> iterator() {
-	            return new Iterator<A>() {
+	        public Iterator<TInitial> iterator() {
+	            return new Iterator<TInitial>() {
 
-	            	Iterator<A> iterator = iterable.iterator();
+	            	Iterator<TInitial> iterator = _iterable.iterator();
 	            	int i = -1;
 	            	
 	                @Override
@@ -196,43 +237,29 @@ public class Linq {
 	                }
 
 	                @Override
-	                public A next() {
+	                public TInitial next() {
 	                	i++;
 	                    return iterator.next();
 	                }
 	            };
 	        }
-	    };
+	    });
 	}
 	
-	public static <A, T extends Iterable<A>> Iterable<A> Skip(T iterable, int toSkipCount){
-		Iterator<A> iterator = iterable.iterator();
-		for(int i = 0; i < toSkipCount; i++){
+	public Linq<TInitial> Skip(int toSkipCount){
+		Iterator<TInitial> iterator = _iterable.iterator();
+		for(; toSkipCount > 0; toSkipCount--){
 			if(iterator.hasNext()){
 				iterator.next();
 			}
 		}
-		if(!iterator.hasNext()){
-			return new ArrayList<A>();
-		}
 		
-		return new Iterable<A>() {
-
-	        @Override
-	        public Iterator<A> iterator() {
-	            return new Iterator<A>() {
-	            	
-	                @Override
-	                public boolean hasNext() {
-	                    return iterator.hasNext();
-	                }
-
-	                @Override
-	                public A next() {
-	                    return iterator.next();
-	                }
-	            };
+		return new Linq<TInitial>(new Iterable<TInitial>() {
+	        
+			@Override
+	        public Iterator<TInitial> iterator() {
+	            return iterator;
 	        }
-	    };
+	    });
 	}
 }
