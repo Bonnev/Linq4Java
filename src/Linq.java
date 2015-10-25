@@ -2,6 +2,7 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.HashSet;
@@ -165,6 +166,20 @@ public class Linq<TInitial> {
 	
 	public <B> Linq<B> OrderByDescending(IFunc<TInitial, B> action, Comparator<B> comparator){
 		return OrderBy(action, (t1, t2) -> comparator.compare(t2, t1));
+	}
+	
+	public <B> HashMap<B, ArrayList<TInitial>> GroupBy(IFunc<TInitial, B> action){
+		HashMap<B, ArrayList<TInitial>> map = new HashMap<>();
+		
+		for(TInitial item : _iterable){
+			B key = action.callAction(item);
+			if(!map.containsKey(key)){
+				map.put(key, new ArrayList<TInitial>());
+			}
+			map.get(key).add(item);
+		}
+		
+		return map;
 	}
 	
 	public Linq<TInitial> Reverse(){
